@@ -1,6 +1,7 @@
 import numpy as np
 
 class KalmanFilter:
+    # Uninitialised state
     position: float = 0
     velocity: float = 0
     
@@ -8,9 +9,9 @@ class KalmanFilter:
     P: np.array = []
     A: np.array = []
     H: np.array = []
-    HT: np.array = []
     R: np.array = []
     Q: np.array = []
+    
     sA: float = 0.1
     sZ: float = 0.1
 
@@ -70,5 +71,4 @@ if __name__ == '__main__':
     for i in range(0, measurement_count):
         z = kalman_filter.measurement_update(i, dt)
         f = kalman_filter.filter(z, i, dt)
-        print(f) # print update vector
-        print('\n')
+        print("Position: {}\nVelocity: {}\n".format(f[0][0], f[0][1])) # print update vector
