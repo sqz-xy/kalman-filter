@@ -19,7 +19,7 @@ class KalmanFilter:
             self.position = 0
             self.velocity = 60
         
-        # Add some random noise to the position and velocity
+        # Add some random noise to the state vector
         w = 0
         v = 0
     
@@ -28,7 +28,8 @@ class KalmanFilter:
         self.position = z - v
         self.velocity = 60 + w
         
-        return [z, self.position, self.velocity]
+        # Return state vector
+        return z
 
 
     def filter(self, z, update_index, dt):
@@ -43,20 +44,22 @@ class KalmanFilter:
             self.Q = np.array([[(self.R * (dt ** 4)) / 4, (self.R * (dt ** 3)) / 2],
                                [(self.R * (dt ** 3)) / 2,  self.R * (dt ** 2)]])       # Noise covariance
             
-        # Predict state
+        # Predict state - F * P * F^T + Q
         self.x = self.A.dot(self.x)                                                         
         self.P = self.A.dot(self.P).dot(np.transpose(self.A)) + self.Q
         
-        innovation = self.H.dot(self.P).dot(np.transpose(self.H)) + self.R              
-        kalman_gain = self.P.dot(np.transpose(self.H)).dot(np.linalg.inv(innovation))
+        # Kalman Gain - P * H^T * (H * P * H^T + R)^-1
+        innovation = self.H.dot(self.P).dot(np.transpose(self.H)) + self.R              # (H * P * H^T + R)^-1      
+        kalman_gain = self.P.dot(np.transpose(self.H)).dot(np.linalg.inv(innovation))   # P * H^T 
 
-        # Update state
-        residual = z - self.H.dot(self.x)
+        # Update state - X + K * (Z - H * X)
+        residual = z - self.H.dot(self.x)           
         self.x = self.x + kalman_gain.dot(residual)
         
-        # Update covariance
+        # Update covariance - P - K * H * P
         self.P = self.P - kalman_gain.dot(self.H).dot(self.P)
         
+        # Updated state vector
         return [self.x]
 
 if __name__ == '__main__':
@@ -66,6 +69,6 @@ if __name__ == '__main__':
     
     for i in range(0, measurement_count):
         z = kalman_filter.measurement_update(i, dt)
-        f = kalman_filter.filter(z[0], i, dt)
+        f = kalman_filter.filter(z, i, dt)
         print(f) # print update vector
         print('\n')
